@@ -4,65 +4,75 @@ using UnityEngine;
 
 public class Map
 {
-    Tile[,] _tiles;
-    int _width;
-    int _height;
+	Tile[,] tiles;
 
-    public int Width
-    {
-        get { return this._width; }
-    }
+	// The tile width of the world.
+	public int Width { get; protected set; }
 
-    public int Height
-    {
-        get { return this._height; }
-    }
+	// The tile height of the world
+	public int Height { get; protected set; }
 
-    public Map(int width = 100, int height = 100)
-    {
-        this._width = width;
-        this._height = height;
+	/// <summary>
+	/// Initializes a new instance of the <see cref="World"/> class.
+	/// </summary>
+	/// <param name="width">Width in tiles.</param>
+	/// <param name="height">Height in tiles.</param>
+	public Map(int width = 100, int height = 100)
+	{
+		Width = width;
+		Height = height;
 
-        _tiles = new Tile[width, height];
+		tiles = new Tile[Width, Height];
 
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                _tiles[x, y] = new Tile(this, x, y);
-            }
-        }
- 
-        Debug.Log("Map created with " + (width * height) + " tiles");
-    }
+		for (int x = 0; x < Width; x++)
+		{
+			for (int y = 0; y < Height; y++)
+			{
+				tiles[x, y] = new Tile(this, x, y);
+			}
+		}
 
-    public Tile GetTileAt(int x, int y)
-    {
-        if (x > _width || x < 0 || y > _height || y < 0)
-        {
-            Debug.LogError("Tile " + x + "," + y + " is out if range");
-        } 
+		Debug.Log("Map created with " + (Width * Height) + " tiles.");
+	}
 
-        return _tiles[x, y];
-    }
+	/// <summary>
+	/// A function for testing out the system
+	/// </summary>
+	public void RandomizeTiles()
+	{
+		Debug.Log("RandomizeTiles");
+		Debug.Log("Width = " + Width + ", Height = " + Height);
+		for (int x = 0; x < Width; x++)
+		{
+			for (int y = 0; y < Height; y++)
+			{
 
-    public void RandomizeTiles()
-    {
-        Debug.Log(_tiles.Length);
-        for (int x = 0; x < _width; x++)
-        {
-            for (int y = 0; y < _height; y++)
-            {
-                if (Random.Range(0, 2) == 0)
-                {
-                    _tiles[x, y].Type = Tile.TileType.Empty;
-                }
-                else
-                {
-                    _tiles[x, y].Type = Tile.TileType.Dirt;
+				if (Random.Range(0, 2) == 0)
+				{
+					tiles[x, y].Type = Tile.TileType.Dirt;
+				}
+				else
+				{
+					tiles[x, y].Type = Tile.TileType.Empty;
+				}
 
-                }
-            }
-        }
-    }
+			}
+		}
+	}
+
+	/// <summary>
+	/// Gets the tile data at x and y.
+	/// </summary>
+	/// <returns>The <see cref="Tile"/>.</returns>
+	/// <param name="x">The x coordinate.</param>
+	/// <param name="y">The y coordinate.</param>
+	public Tile GetTileAt(int x, int y)
+	{
+		if (x > Width || x < 0 || y > Height || y < 0)
+		{
+			Debug.LogWarning("Tile (" + x + "," + y + ") is out of range.");
+			return null;
+		}
+		return tiles[x, y];
+	}
 }
