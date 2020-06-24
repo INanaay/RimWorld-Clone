@@ -41,7 +41,7 @@ public class Map
         if (x > _width || x < 0 || y > _height || y < 0)
         {
             Debug.LogError("Tile " + x + "," + y + " is out if range");
-        }
+        } 
 
         return _tiles[x, y];
     }
