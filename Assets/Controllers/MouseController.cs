@@ -1,9 +1,13 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.EventSystems;
 
 public class MouseController : MonoBehaviour
 {
 	public GameObject circleCursorPrefab;
+
+	Tile.TileType _buildModeTyle = Tile.TileType.Dirt;
 
 	// The world-position of the mouse last frame.
 	Vector3 lastFramePosition;
@@ -53,6 +57,11 @@ public class MouseController : MonoBehaviour
 
 	void UpdateDragging()
 	{
+		// If we are over a UI element, forbid
+		if (EventSystem.current.IsPointerOverGameObject())
+        {
+			return;
+        }
 
 		// Start Drag
 		if (Input.GetMouseButtonDown(0))
@@ -118,7 +127,7 @@ public class MouseController : MonoBehaviour
 					Tile t = MapController.Instance.Map.GetTileAt(x, y);
 					if (t != null)
 					{
-						t.Type = Tile.TileType.Dirt;
+						t.Type = _buildModeTyle;
 					}
 				}
 			}
@@ -138,4 +147,14 @@ public class MouseController : MonoBehaviour
 		Camera.main.orthographicSize -= Camera.main.orthographicSize * Input.GetAxis("Mouse ScrollWheel");
 		Camera.main.orthographicSize = Mathf.Clamp(Camera.main.orthographicSize, 4f, 30f);
 	}
+
+	public void SetMode_BuildFloor()
+    {
+		_buildModeTyle = Tile.TileType.Dirt;
+    }
+
+	public void SetMode_Bulldoze()
+    {
+		_buildModeTyle = Tile.TileType.Empty;
+    }
 }
