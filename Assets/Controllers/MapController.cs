@@ -7,8 +7,13 @@ public class MapController : MonoBehaviour
 	public static MapController Instance { get; protected set; }
 	public Sprite floorSprite;
 
+
 	// The world and tile data
 	public Map Map { get; protected set; }
+
+
+	Dictionary<Tile, GameObject> _tileGameObjectMap;
+
 
 	// Use this for initialization
 	void Start()
@@ -22,6 +27,8 @@ public class MapController : MonoBehaviour
 		// Create a world with Empty tiles
 		Map = new Map();
 
+		_tileGameObjectMap = new Dictionary<Tile, GameObject>();
+
 		// Create a GameObject for each of our tiles, so they show visually. (and redunt reduntantly)
 		for (int x = 0; x < Map.Width; x++)
 		{
@@ -32,6 +39,9 @@ public class MapController : MonoBehaviour
 
 				// This creates a new GameObject and adds it to our scene.
 				GameObject tile_go = new GameObject();
+
+				_tileGameObjectMap.Add(tile_data, tile_go);
+
 				tile_go.name = "Tile_" + x + "_" + y;
 				tile_go.transform.position = new Vector3(tile_data.Position.x, tile_data.Position.y, 0);
 				tile_go.transform.SetParent(this.transform, true);
@@ -40,8 +50,8 @@ public class MapController : MonoBehaviour
 				// because all the tiles are empty right now.
 				tile_go.AddComponent<SpriteRenderer>();
 
-				// Use a lambda to create an anonymous function to "wrap" our callback function
-				tile_data.RegisterOnTileTypeChangedCallback((tile) => { OnTileTypeChanged(tile, tile_go); });
+				
+				tile_data.RegisterOnTileTypeChangedCallback(OnTileTypeChanged);
 			}
 		}
 
@@ -56,14 +66,26 @@ public class MapController : MonoBehaviour
 	}
 
 	// This function should be called automatically whenever a tile's type gets changed.
-	void OnTileTypeChanged(Tile tile_data, GameObject tile_go)
+	void OnTileTypeChanged(Tile tile_data)
 	{
+		if (_tileGameObjectMap.ContainsKey(tile_data) == false)
+        {
+			Debug.LogError("tileGameObjectMap does not contain the tile_data");
+			return;
+        }
+		GameObject tile_go = _tileGameObjectMap[tile_data];
 
-		if (tile_data.Type == Tile.TileType.Dirt)
+		if (tile_go == null)
+        {
+			Debug.LogError("tileGameObjectMap's returned GameObject is null");
+			return;
+		}
+
+		if (tile_data.Type == TileType.Dirt)
 		{
 			tile_go.GetComponent<SpriteRenderer>().sprite = floorSprite;
 		}
-		else if (tile_data.Type == Tile.TileType.Empty)
+		else if (tile_data.Type == TileType.Empty)
 		{
 			tile_go.GetComponent<SpriteRenderer>().sprite = null;
 		}

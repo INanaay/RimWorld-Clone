@@ -7,7 +7,8 @@ public class MouseController : MonoBehaviour
 {
 	public GameObject circleCursorPrefab;
 
-	Tile.TileType _buildModeTyle = Tile.TileType.Dirt;
+	bool _buildModeObjects = false;
+	TileType _buildModeTyle = TileType.Dirt;
 
 	// The world-position of the mouse last frame.
 	Vector3 lastFramePosition;
@@ -124,10 +125,18 @@ public class MouseController : MonoBehaviour
 			{
 				for (int y = start_y; y <= end_y; y++)
 				{
+
 					Tile t = MapController.Instance.Map.GetTileAt(x, y);
 					if (t != null)
 					{
-						t.Type = _buildModeTyle;
+						if (_buildModeObjects)
+						{
+
+						}
+						else
+						{
+							t.Type = _buildModeTyle;
+						}
 					}
 				}
 			}
@@ -150,11 +159,18 @@ public class MouseController : MonoBehaviour
 
 	public void SetMode_BuildFloor()
     {
-		_buildModeTyle = Tile.TileType.Dirt;
+		_buildModeObjects = false;
+		_buildModeTyle = TileType.Dirt;
     }
 
 	public void SetMode_Bulldoze()
     {
-		_buildModeTyle = Tile.TileType.Empty;
+		_buildModeObjects = false;
+		_buildModeTyle = TileType.Empty;
     }
-}
+
+	public void SetMode_Wall()
+    {
+		_buildModeObjects = true;
+	}
+} 

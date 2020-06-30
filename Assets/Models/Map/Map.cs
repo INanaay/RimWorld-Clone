@@ -49,11 +49,11 @@ public class Map
 
 				if (Random.Range(0, 2) == 0)
 				{
-					tiles[x, y].Type = Tile.TileType.Dirt;
+					tiles[x, y].Type = TileType.Dirt;
 				}
 				else
 				{
-					tiles[x, y].Type = Tile.TileType.Empty;
+					tiles[x, y].Type = TileType.Empty;
 				}
 
 			}

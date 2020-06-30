@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+public enum TileType { Dirt, Floor, Water, Empty };
+
 public class Tile
 {
-    public enum TileType { Dirt, Floor, Water, Empty };
     private TileType _tileType;
     private Map _map;
     Vector2Int _position;
     Action<Tile> _tileTypeChangedCallback;
+
+    InstalledObject _installedObject;
 
     public TileType Type { 
         get => _tileType;
