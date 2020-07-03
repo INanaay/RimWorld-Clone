@@ -9,6 +9,7 @@ public class MouseController : MonoBehaviour
 
 	bool _buildModeObjects = false;
 	TileType _buildModeTyle = TileType.Dirt;
+	string _buildModeObjectType;
 
 	// The world-position of the mouse last frame.
 	Vector3 lastFramePosition;
@@ -131,7 +132,8 @@ public class MouseController : MonoBehaviour
 					{
 						if (_buildModeObjects)
 						{
-
+							Debug.Log("Build Mode");
+							MapController.Instance.Map.PlaceInstalledObject(_buildModeObjectType, t);
 						}
 						else
 						{
@@ -169,8 +171,9 @@ public class MouseController : MonoBehaviour
 		_buildModeTyle = TileType.Empty;
     }
 
-	public void SetMode_Wall()
+	public void SetMode_BuildInstalledObject(string objectType)
     {
 		_buildModeObjects = true;
+		_buildModeObjectType = objectType;
 	}
 } 

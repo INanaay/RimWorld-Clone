@@ -12,14 +12,16 @@ public class Tile
     Vector2Int _position;
     Action<Tile> _tileTypeChangedCallback;
 
-    InstalledObject _installedObject;
+    public InstalledObject InstalledObject
+    {
+        get; protected set;
+    }
 
     public TileType Type { 
         get => _tileType;
         set {
             if (_tileType != value)
             {
-                Debug.Log("Setter");
                 _tileType = value;
                 _tileTypeChangedCallback?.Invoke(this);
             }
@@ -45,4 +47,21 @@ public class Tile
         _tileTypeChangedCallback -= callback;
     }
 
+    public bool PlaceObject(InstalledObject objInstance)
+    {
+        if (objInstance == null)
+        {
+            InstalledObject = null;
+            return true;
+        }
+
+        if (InstalledObject != null)
+        {
+            Debug.LogError("Trying to place an object to a tile that already has one");
+            return false;
+        }
+
+        InstalledObject = objInstance;
+        return true;
+    }
 }

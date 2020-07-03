@@ -1,16 +1,21 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 public class Map
 {
 	Tile[,] tiles;
 
+	Dictionary<string, InstalledObject> _installedObjectPrototypes;
+
 	// The tile width of the world.
 	public int Width { get; protected set; }
 
 	// The tile height of the world
 	public int Height { get; protected set; }
+
+	Action<InstalledObject> _installedObjectCreatedCallback;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="World"/> class.
@@ -33,7 +38,21 @@ public class Map
 		}
 
 		Debug.Log("Map created with " + (Width * Height) + " tiles.");
+
+		CreateInstalledObjectPrototypes();
+
 	}
+
+	void CreateInstalledObjectPrototypes()
+    {
+		_installedObjectPrototypes = new Dictionary<string, InstalledObject>();
+
+		InstalledObject wallProto = InstalledObject.CreatePrototype("Wall", 0, 1, 1, true); // links to neighbour
+
+		_installedObjectPrototypes.Add("Wall", wallProto);
+	}
+
+	
 
 	/// <summary>
 	/// A function for testing out the system
@@ -47,7 +66,7 @@ public class Map
 			for (int y = 0; y < Height; y++)
 			{
 
-				if (Random.Range(0, 2) == 0)
+				if (UnityEngine.Random.Range(0, 2) == 0)
 				{
 					tiles[x, y].Type = TileType.Dirt;
 				}
@@ -74,5 +93,37 @@ public class Map
 			return null;
 		}
 		return tiles[x, y];
+	}
+
+	public void PlaceInstalledObject(string objectType, Tile t)
+    {
+		Debug.Log("PlaceInstalledObject");
+		if (objectType == null ||t == null)
+        {
+			Debug.LogError("NUll error");
+        }
+		if (_installedObjectPrototypes.ContainsKey(objectType) == false)
+        {
+			Debug.LogError("_installedObjectPrototypes doesn't contain a prototype for key : " + objectType);
+			return;
+        }
+		InstalledObject obj = InstalledObject.PlaceInstance(_installedObjectPrototypes[objectType], t);
+
+		if (obj == null)
+        {
+			return;
+        }
+
+        _installedObjectCreatedCallback?.Invoke(obj);
+    }
+
+	public void RegisterInstalledObjectCreated(Action<InstalledObject> callback)
+    {
+		_installedObjectCreatedCallback += callback;
+    }
+
+	public void UnregisterInstalledObjectCreated(Action<InstalledObject> callback)
+	{
+		_installedObjectCreatedCallback -= callback;
 	}
 }
