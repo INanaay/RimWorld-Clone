@@ -7,7 +7,7 @@ public class Map
 {
 	Tile[,] tiles;
 
-	Dictionary<string, InstalledObject> _installedObjectPrototypes;
+	Dictionary<string, Furniture> _furniturePrototypes;
 
 	// The tile width of the world.
 	public int Width { get; protected set; }
@@ -15,7 +15,7 @@ public class Map
 	// The tile height of the world
 	public int Height { get; protected set; }
 
-	Action<InstalledObject> _installedObjectCreatedCallback;
+	Action<Furniture> _furnitureCreatedCallback;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="World"/> class.
@@ -39,17 +39,17 @@ public class Map
 
 		Debug.Log("Map created with " + (Width * Height) + " tiles.");
 
-		CreateInstalledObjectPrototypes();
+		CreateFurniturePrototypes();
 
 	}
 
-	void CreateInstalledObjectPrototypes()
+	void CreateFurniturePrototypes()
     {
-		_installedObjectPrototypes = new Dictionary<string, InstalledObject>();
+		_furniturePrototypes = new Dictionary<string, Furniture>();
 
-		InstalledObject wallProto = InstalledObject.CreatePrototype("Wall", 0, 1, 1, true); // links to neighbour
+		Furniture wallProto = Furniture.CreatePrototype("Wall", 0, 1, 1, true); // links to neighbour
 
-		_installedObjectPrototypes.Add("Wall", wallProto);
+		_furniturePrototypes.Add("Wall", wallProto);
 	}
 
 	
@@ -68,7 +68,7 @@ public class Map
 
 				if (UnityEngine.Random.Range(0, 2) == 0)
 				{
-					tiles[x, y].Type = TileType.Dirt;
+					tiles[x, y].Type = TileType.Floor;
 				}
 				else
 				{
@@ -95,35 +95,35 @@ public class Map
 		return tiles[x, y];
 	}
 
-	public void PlaceInstalledObject(string objectType, Tile t)
+	public void PlaceFurniture(string objectType, Tile t)
     {
-		Debug.Log("PlaceInstalledObject");
+		Debug.Log("PlaceFurniture");
 		if (objectType == null ||t == null)
         {
 			Debug.LogError("NUll error");
         }
-		if (_installedObjectPrototypes.ContainsKey(objectType) == false)
+		if (_furniturePrototypes.ContainsKey(objectType) == false)
         {
-			Debug.LogError("_installedObjectPrototypes doesn't contain a prototype for key : " + objectType);
+			Debug.LogError("_furniturePrototypes doesn't contain a prototype for key : " + objectType);
 			return;
         }
-		InstalledObject obj = InstalledObject.PlaceInstance(_installedObjectPrototypes[objectType], t);
+		Furniture obj = Furniture.PlaceInstance(_furniturePrototypes[objectType], t);
 
 		if (obj == null)
         {
 			return;
         }
 
-        _installedObjectCreatedCallback?.Invoke(obj);
+        _furnitureCreatedCallback?.Invoke(obj);
     }
 
-	public void RegisterInstalledObjectCreated(Action<InstalledObject> callback)
+	public void RegisterFurnitureCreated(Action<Furniture> callback)
     {
-		_installedObjectCreatedCallback += callback;
+		_furnitureCreatedCallback += callback;
     }
 
-	public void UnregisterInstalledObjectCreated(Action<InstalledObject> callback)
+	public void UnregisterFurnitureCreated(Action<Furniture> callback)
 	{
-		_installedObjectCreatedCallback -= callback;
+		_furnitureCreatedCallback -= callback;
 	}
 }

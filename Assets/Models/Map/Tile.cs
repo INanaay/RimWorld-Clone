@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public enum TileType { Dirt, Floor, Water, Empty };
+public enum TileType { Floor, Empty };
 
 public class Tile
 {
     private TileType _tileType;
-    private Map _map;
+    public Map Map { get; protected set; }
     Vector2Int _position;
     Action<Tile> _tileTypeChangedCallback;
 
-    public InstalledObject InstalledObject
+    public Furniture Furniture
     {
         get; protected set;
     }
@@ -33,7 +33,7 @@ public class Tile
     public Tile(Map map, int x, int y)
     {
         _tileType = TileType.Empty;
-        _map = map;
+        Map = map;
         _position = new Vector2Int(x, y);
     }
 
@@ -47,21 +47,21 @@ public class Tile
         _tileTypeChangedCallback -= callback;
     }
 
-    public bool PlaceObject(InstalledObject objInstance)
+    public bool PlaceFurniture(Furniture objInstance)
     {
         if (objInstance == null)
         {
-            InstalledObject = null;
+            Furniture = null;
             return true;
         }
 
-        if (InstalledObject != null)
+        if (Furniture != null)
         {
             Debug.LogError("Trying to place an object to a tile that already has one");
             return false;
         }
 
-        InstalledObject = objInstance;
+        Furniture = objInstance;
         return true;
     }
 }

@@ -7,29 +7,23 @@ public class MapController : MonoBehaviour
 {
 	public static MapController Instance { get; protected set; }
 	public Sprite floorSprite;
+	public Sprite emptySprite;
 
 	// The world and tile data
 	public Map Map { get; protected set; }
 
 
 	Dictionary<Tile, GameObject> _tileGameObjectMap;
-	Dictionary<InstalledObject, GameObject> _installedGameObjectMap;
+	Dictionary<Furniture, GameObject> _furnitureGameObjectMap;
 
-	Dictionary<string, Sprite> _installedObjectsSprites;
+	Dictionary<string, Sprite> _furnitureSprites;
 
 
 	// Use this for initialization
 	void Start()
 	{
 
-		_installedObjectsSprites = new Dictionary<string, Sprite>();
-		Sprite[] sprites = Resources.LoadAll<Sprite>("Textures/InstalledObjects/Wall");
-		Debug.Log("Sprites loaded");
-
-		foreach (Sprite s in sprites)
-        {
-			_installedObjectsSprites[s.name] = s;
-        }
+		LoadSprites();
 
 		if (Instance != null)
 		{
@@ -40,10 +34,10 @@ public class MapController : MonoBehaviour
 		// Create a world with Empty tiles
 		Map = new Map();
 
-		Map.RegisterInstalledObjectCreated(OnInstalledObjectCreated);
+		Map.RegisterFurnitureCreated(OnFurnitureCreated);
 
 		_tileGameObjectMap = new Dictionary<Tile, GameObject>();
-		_installedGameObjectMap = new Dictionary<InstalledObject, GameObject>();
+		_furnitureGameObjectMap = new Dictionary<Furniture, GameObject>();
 
 		// Create a GameObject for each of our tiles, so they show visually. (and redunt reduntantly)
 		for (int x = 0; x < Map.Width; x++)
@@ -64,21 +58,36 @@ public class MapController : MonoBehaviour
 
 				// Add a sprite renderer, but don't bother setting a sprite
 				// because all the tiles are empty right now.
-				tile_go.AddComponent<SpriteRenderer>();
+				tile_go.AddComponent<SpriteRenderer>().sprite = emptySprite;
 
 				
 				tile_data.RegisterOnTileTypeChangedCallback(OnTileTypeChanged);
 			}
 		}
 
+		//Center the Camera
+		Camera.main.transform.position = new Vector3(Map.Width / 2, Map.Height / 2, Camera.main.transform.position.z);
+
 		// Shake things up, for testing.
-		Map.RandomizeTiles();
+		//Map.RandomizeTiles();
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
 
+	}
+
+	void LoadSprites()
+    {
+		_furnitureSprites = new Dictionary<string, Sprite>();
+		Sprite[] sprites = Resources.LoadAll<Sprite>("Textures/Furniture/Wall");
+		Debug.Log("Sprites loaded");
+
+		foreach (Sprite s in sprites)
+		{
+			_furnitureSprites[s.name] = s;
+		}
 	}
 
 	// This function should be called automatically whenever a tile's type gets changed.
@@ -97,7 +106,7 @@ public class MapController : MonoBehaviour
 			return;
 		}
 
-		if (tile_data.Type == TileType.Dirt)
+		if (tile_data.Type == TileType.Floor)
 		{
 			tile_go.GetComponent<SpriteRenderer>().sprite = floorSprite;
 		}
@@ -126,34 +135,45 @@ public class MapController : MonoBehaviour
 		return Map.GetTileAt(x, y);
 	}
 
-	public void OnInstalledObjectCreated(InstalledObject obj)
+	public void OnFurnitureCreated(Furniture furn)
     {
 		//create a visual Gameobject linked to an object.
-		GameObject obj_go = new GameObject();
+		GameObject furn_go = new GameObject();
 
-		_installedGameObjectMap.Add(obj, obj_go);
+		_furnitureGameObjectMap.Add(furn, furn_go);
 
-		obj_go.name = obj.ObjectType + " " + obj.Tile.Position.x + "_" + obj.Tile.Position.y;
-		obj_go.transform.position = new Vector3(obj.Tile.Position.x, obj.Tile.Position.y, 0);
-		obj_go.transform.SetParent(this.transform, true);
+		furn_go.name = furn.ObjectType + " " + furn.Tile.Position.x + "_" + furn.Tile.Position.y;
+		furn_go.transform.position = new Vector3(furn.Tile.Position.x, furn.Tile.Position.y, 0);
+		furn_go.transform.SetParent(this.transform, true);
 
 		// Add a sprite renderer, but don't bother setting a sprite
 		// because all the tiles are empty right now.
-		obj_go.AddComponent<SpriteRenderer>().sprite = GetSpriteForInstalledObject(obj);
+		furn_go.AddComponent<SpriteRenderer>().sprite = GetSpriteForFurniture(furn);
+		furn_go.GetComponent<SpriteRenderer>().sortingLayerName = "Wall";
 
-		obj.RegisterOnChangeCallback(onInstalledObjectChange);
+
+		furn.RegisterOnChangeCallback(onFurnitureChange);
 	}
 
-	void onInstalledObjectChange(InstalledObject obj)
+	void onFurnitureChange(Furniture furn)
     {
-		Debug.LogError("onInstalledObjectChange NOT IMPLEMENTED");
-    }
+		//Make sure the furniture graphics are correct
 
-	Sprite GetSpriteForInstalledObject(InstalledObject obj)
+		if (_furnitureGameObjectMap.ContainsKey(furn) == false)
+        {
+			Debug.LogError("onFurnitureChange - trying to change visuals for furniture not in our map");
+        }
+
+		GameObject furn_go = _furnitureGameObjectMap[furn];
+		furn_go.GetComponent<SpriteRenderer>().sprite = GetSpriteForFurniture(furn);
+		furn_go.GetComponent<SpriteRenderer>().sortingLayerName = "Wall";
+	}
+
+	Sprite GetSpriteForFurniture(Furniture obj)
     {
 		if (obj.LinksToNeighbour == false)
         {
-			return (_installedObjectsSprites[obj.ObjectType]);
+			return (_furnitureSprites[obj.ObjectType]);
         }
 
 		//otherwise, sprite name is more complicated.
@@ -164,22 +184,22 @@ public class MapController : MonoBehaviour
 		int y = obj.Tile.Position.y;
 
 		t = Map.GetTileAt(x, y + 1);
-		if (t != null && t.InstalledObject != null && t.InstalledObject.ObjectType == obj.ObjectType)
+		if (t != null && t.Furniture != null && t.Furniture.ObjectType == obj.ObjectType)
         {
 			spriteName += "N";
         }
 		t = Map.GetTileAt(x + 1, y);
-		if (t != null && t.InstalledObject != null && t.InstalledObject.ObjectType == obj.ObjectType)
+		if (t != null && t.Furniture != null && t.Furniture.ObjectType == obj.ObjectType)
 		{
 			spriteName += "E";
 		}
 		t = Map.GetTileAt(x, y - 1);
-		if (t != null && t.InstalledObject != null && t.InstalledObject.ObjectType == obj.ObjectType)
+		if (t != null && t.Furniture != null && t.Furniture.ObjectType == obj.ObjectType)
 		{
 			spriteName += "S";
 		}
 		t = Map.GetTileAt(x - 1, y);
-		if (t != null && t.InstalledObject != null && t.InstalledObject.ObjectType == obj.ObjectType)
+		if (t != null && t.Furniture != null && t.Furniture.ObjectType == obj.ObjectType)
 		{
 			spriteName += "W";
 		}
@@ -188,12 +208,12 @@ public class MapController : MonoBehaviour
 		// the same type, the string will look like :
 		// Wall_NESW
 
-		if (_installedObjectsSprites.ContainsKey(spriteName) == false)
+		if (_furnitureSprites.ContainsKey(spriteName) == false)
         {
-			Debug.LogError("GetSpriteForInstalledObject -- No sprites with name : " + spriteName);
+			Debug.LogError("GetSpriteForFurniture -- No sprites with name : " + spriteName);
 			return null;
         }
 
-		return _installedObjectsSprites[spriteName];
+		return _furnitureSprites[spriteName];
     }
 }
